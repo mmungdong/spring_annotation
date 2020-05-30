@@ -1,11 +1,7 @@
 package com.atguigu;
 
-import java.util.Scanner;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.atguigu.beans.Person;
 import com.atguigu.config.MainConfig;
 /**

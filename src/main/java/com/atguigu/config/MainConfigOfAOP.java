@@ -20,11 +20,58 @@ package com.atguigu.config;
  * 1）：将业务逻辑组件和切面类都加入到容器中；告诉spring哪个时切面类（@Aspect）
  * 2）：在切面类上的每一个通知方法上标注通知注解，告诉Spring何时何地运行（切入点表达式）
  * 3）：开启基于注解的aop模式；@EnableAspectJAutoProxy
+ * 
+ * 1.AOP原理【给容器中注册了什么组件，这个组件什么时候工作，这个组件 的源码是什么】：
+ * 		@EnableAspectJAutoProxy
+ *      @Import(AspectJAutoProxyRegistrar.class)给容器中导入AspectJAutoProxyRegistrar
+ *                 利用AspectJAutoProxyRegistrar给容器中注册bean
+ *                 internalAutoProxyCreator=AnnotationAwareAspectJAutoProxyCreator
+ *     给容器中注册了AnnotationAwareAspectJAutoProxyCreator
+ * 2.AnnotationAwareAspectJAutoProxyCreator 
+ * 		AspectJAwareAdvisorAutoProxyCreator
+ * 			AbstractAdvisorAutoProxyCreator
+ * 				AbstractAutoProxyCreator
+ *   			implements SmartInstantiationAwareBeanPostProcessor, BeanFactoryAware
+ *   			关注BeanFactory(在bean的初始化前后做哪些事情)。自动装配BeanFactory
+ * 
+ *  流程：
+ *  1）、传入配置类，创建ioc容器
+ *  2）、注册配置类，调用refresh()刷新容器
+ *  3）、registerBeanPostProcessors(beanFactory)；注册bean的后置处理器来方便拦截bean的创建
+ *     		1）、先获取ioc容器已经定义了的需要创建对象的所有BeanPostProcessor
+ *     		2）、给容器中加别的BeanPostProcessor
+ *     		3）、优先注册了实现PriorityOrdered接口的BeanPostProcessor；
+ *     		4）、在给容器中注册实现了Ordered接口的BeanPostProcessor；
+ *     		5）、注册没实现优先级接口的BeanPostProcessor；
+ *     		6）、注册BenaPostProcessor，实际上就是创建BeanPostProcessor对象，保存至容器中；
+ *     			创建internalAutoProxyCreator（）【AnnotationAwareAspectJAutoProxyCreator】
+ *     			1）、创建Bean的实例
+ *     			2）、populateBean；给各种bean赋值
+ *     			3）、initializeBean：初始化bean；
+ *     					1）、invokeAwareMethods();处理Aware的方法回调
+ *     					2）、applyBeanPostProcessorsBeforeInitialization()，应用后置处理器的postProcessBeforeInitialization
+ *     					3）、invokeInitMethods();执行自定义的初始化方法
+ *     					4）、applyBeanPostProcessorsAfterInitialization()，应用后置处理器的postProcessAfterInitialization；
+ *     			4）、BenaPostProcessor【AnnotationAwareAspectJAutoProxyCreator】创建成功
+ *     		7）、把BeanPostProcessor注册到BeanFactory中；
+ * ====以上是创建AnnotationAwareAspectJAutoProxyCreator的过程====
+ * 		AnnotationAwareAspectJAutoProxyCreator => InstantiationAwareBeanPostProcessor 
+ * 4）、finishBeanFactoryInitialization(beanFactory);完成BeanFactory的初始化工作，创建剩下的单实例Bean
+ * 		1）、遍历获取容器中所有的Bean，依次创建对象getBean(beanName);
+ * 			getBean()->doGetBean()->getSingleton(beanName);
+ * 		2）、createBean();创建bean
+ * 			1）、resolveBeforeInstantiation(beanName, mbdToUse);
  */
 
+import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
+import org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 
 import com.atguigu.aop.LogAspects;
 import com.atguigu.aop.MathCalculator;
