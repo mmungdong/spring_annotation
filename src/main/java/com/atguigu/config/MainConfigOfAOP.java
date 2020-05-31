@@ -59,8 +59,11 @@ package com.atguigu.config;
  * 4）、finishBeanFactoryInitialization(beanFactory);完成BeanFactory的初始化工作，创建剩下的单实例Bean
  * 		1）、遍历获取容器中所有的Bean，依次创建对象getBean(beanName);
  * 			getBean()->doGetBean()->getSingleton(beanName);
- * 		2）、createBean();创建bean
- * 			1）、resolveBeforeInstantiation(beanName, mbdToUse);
+ * 		2）、创建Bean
+ * 			1）、先从缓存中获取当前bean，如果能获取到，说明bean是之前被创建过的，直接使用，否则在创建；
+ * 				只要创建好的bean能被缓存起来
+ * 			2）、createBean();创建bean
+ * 				resolveBeforeInstantiation(beanName, mbdToUse);
  */
 
 import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
