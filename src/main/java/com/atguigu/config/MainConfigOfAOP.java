@@ -59,11 +59,25 @@ package com.atguigu.config;
  * 4）、finishBeanFactoryInitialization(beanFactory);完成BeanFactory的初始化工作，创建剩下的单实例Bean
  * 		1）、遍历获取容器中所有的Bean，依次创建对象getBean(beanName);
  * 			getBean()->doGetBean()->getSingleton(beanName);
+ * 			
  * 		2）、创建Bean
+ * 			[AnnotationAwareAspectJAutoProxyCreator在所有bean创建之前会有一个拦截，InstantiationAwareBeanPostProcessor，postProcessBeforeInstantiation(beanClass, beanName);]
  * 			1）、先从缓存中获取当前bean，如果能获取到，说明bean是之前被创建过的，直接使用，否则在创建；
- * 				只要创建好的bean能被缓存起来
+ * 				只要创建好的bean能会被缓存起来
  * 			2）、createBean();创建bean
- * 				resolveBeforeInstantiation(beanName, mbdToUse);
+ * 				
+ * 				【BenaPostProcessor是在bean对象创建完成初始化前后调用的】
+ * 				【InstantiationAwareBeanPostProcessor是在创建bean实例之前先尝试调用后置处理器返回对象的】
+ * 				1）、resolveBeforeInstantiation(beanName, mbdToUse);解析BeforeInstantiation
+ * 				希望后置处理器能在此返回一个代理对象，如果能返回代理对象就使用，如果不能就继续
+ * 					1）、后置处理器先尝试返回对象
+ * 						bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
+ * 						拿到所有的后置处理器如果是InstantiationAwareBeanPostProcessor；
+ * 						就执行postProcessBeforeInstantiation(beanClass, beanName);
+ * 						if (bean != null) {
+							bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+						}
+ * 					2）、doCreateBean(beanName, mbdToUse, args);真正的去创建一个bean实例，和3.6流程一样
  */
 
 import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
